@@ -1,7 +1,5 @@
 const expect = require('chai').expect;
-
-export const avg = (rollsNum, min, max) => rollsNum / (max - min + 1);
-export const requestUrl = (rollsNum, min, max) => `https://www.random.org/integers/?num=${rollsNum}&min=${min}&max=${max}&col=1&base=10&format=plain&rnd=new`;
+import superagent from "superagent";
 
 export const deviationChecker = (numbersArray, avg) => {
     const numbersCount = {};
@@ -30,3 +28,18 @@ export const deviationChecker = (numbersArray, avg) => {
     }
     expect(isTestFailed).to.be.false;
 }
+
+export const roll = async (diceCount, rollsCount) => {
+    const requestUrl = `https://www.random.org/integers/?num=${rollsCount}&min=1&max=6&col=1&base=10&format=plain&rnd=new`;
+    const promiseArray = [];
+    for (let i = 0; i < diceCount; i++) {
+        promiseArray.push(superagent.get(requestUrl));
+    }
+    const responses = await Promise.all(promiseArray);
+    const resArray = responses.map(res => res.text.split(`\n`).filter(Boolean));
+    return resArray.reduce((accumulator, currentValue) => {
+        return accumulator.map((number, index) => {
+            return Number(number) + Number(currentValue[index]);
+        });
+    });
+};
